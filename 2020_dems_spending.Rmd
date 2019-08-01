@@ -1,5 +1,5 @@
 ---
-title: "2020 Dems Spending"
+title: "2020 Candidate Spending"
 author: "Tanner Gildea"
 date: "7/30/2019"
 output: html_document
@@ -12,20 +12,51 @@ library(tidyverse)
 library(ggplot2)
 
 
-spending_1 <- read.csv("2020_dems_fec_part1_spending.csv")
+dems_1 <- read.csv("dems_1_spending.csv")
   
-spending_2 <- read.csv("2020_dems_fec_part2_spending.csv")
+dems_2 <- read.csv("dems_2_spending.csv")
 
 # Merges both together vertically
 
-spending <- rbind(spending_1,spending_2) %>% 
+dems <- rbind(spending_1,spending_2) %>% 
   select(committee_name, recipient_name, recipient_state, disbursement_description, disbursement_date, 
          disbursement_amount, recipient_city)
+
+trump <- read.csv("trump_spending.csv") %>% 
+  select(committee_name, recipient_name, recipient_state, disbursement_description, disbursement_date, 
+         disbursement_amount, recipient_city)
+
+#Date range: Jan 1 2019 - June 30 2019
 ```
 
 
-```{r}
+```{r tests}
 
+# grepl() great for filtering based on part of the string
+
+ads_test <- trump %>% 
+  filter(grepl("ADVERTISING", disbursement_description)) %>% 
+  filter(disbursement_amount >= 0)
+
+payroll_test <- trump %>% 
+  filter(grepl("PAYROLL", disbursement_description)) %>% 
+  filter(disbursement_amount >= 0)
+
+travel_test <- trump %>% 
+  filter(grepl("TRAVEL", disbursement_description)) %>% 
+  filter(disbursement_amount >= 0)
+
+
+
+```
+
+
+```{r levels}
+levels(trump$disbursement_description)
+```
+
+
+```{r travel}
 
 
 ```
