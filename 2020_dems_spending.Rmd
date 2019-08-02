@@ -10,6 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 library(tidyverse)
 library(ggplot2)
+library(ggthemes)
 
 
 dems_1 <- read.csv("dems_1_spending.csv")
@@ -18,7 +19,7 @@ dems_2 <- read.csv("dems_2_spending.csv")
 
 # Merges both together vertically
 
-dems <- rbind(spending_1,spending_2) %>% 
+dems <- rbind(dems_1,dems_2) %>% 
   select(committee_name, recipient_name, recipient_state, disbursement_description, disbursement_date, 
          disbursement_amount, recipient_city)
 
@@ -27,6 +28,8 @@ trump <- read.csv("trump_spending.csv") %>%
          disbursement_amount, recipient_city)
 
 #Date range: Jan 1 2019 - June 30 2019
+
+all <- rbind(dems, trump)
 ```
 
 
@@ -34,9 +37,8 @@ trump <- read.csv("trump_spending.csv") %>%
 
 # grepl() great for filtering based on part of the string
 
-ads_test <- trump %>% 
-  filter(grepl("ADVERTISING", disbursement_description)) %>% 
-  filter(disbursement_amount >= 0)
+
+
 
 payroll_test <- trump %>% 
   filter(grepl("PAYROLL", disbursement_description)) %>% 
@@ -46,17 +48,113 @@ travel_test <- trump %>%
   filter(grepl("TRAVEL", disbursement_description)) %>% 
   filter(disbursement_amount >= 0)
 
+meals_test <- trump %>% 
+  filter(grepl("MEAL|FOOD", disbursement_description)) %>% 
+  filter(disbursement_amount >= 0)
+
 
 
 ```
 
 
-```{r levels}
-levels(trump$disbursement_description)
+```{r media}
+# online_advertising <- all %>% 
+#   filter(grepl("ADVERTISING|MEDIA", disbursement_description)) %>% 
+#   filter(disbursement_description != "DIGITAL MEDIA EQUIPMENT") %>% 
+#   filter(disbursement_description != "MEDIA PRODUCTION") %>% 
+#   filter(disbursement_description != "ONLINE MEDIA PRODUCTION") %>% 
+#   filter(disbursement_amount >= 0)
+# 
+# recipient <- online_advertising %>% 
+#   group_by(recipient_name) %>% 
+#   summarize(total = sum(disbursement_amount)) %>% 
+#   arrange(desc(total))  
+
+favs <- all %>% 
+  filter(grepl("FACEBOOK|TWITTER|GOOGLE|SNAP|MICROSOFT|HULU", recipient_name)) %>% 
+  filter(grepl("ADVERTISING|MEDIA", disbursement_description)) %>% 
+  filter(disbursement_amount >= 0)
+
+favs_summary <- favs %>% 
+  group_by(recipient_name) %>% 
+  summarize(total_payments = sum(disbursement_amount))
+
+favs_summary$recipient_name[favs_summary$recipient_name == "FACEBOOK.COM"] <- "FACEBOOK"
+favs_summary$recipient_name[favs_summary$recipient_name == "TWITTER, INC"] <- "TWITTER"
+favs_summary$recipient_name[favs_summary$recipient_name == "GOOGLE LLC"] <- "GOOGLE"
+favs_summary$recipient_name[favs_summary$recipient_name == "GOOGLE SERVICES"] <- "GOOGLE"
+favs_summary$recipient_name[favs_summary$recipient_name == "HULU, LLC"] <- "HULU"
+# favs_summary$recipient_name[favs_summary$recipient_name == "SNAP INC., LLC"] <- "SNAPCHAT"
+
+
+ggplot(favs_summary, aes(x = recipient_name, y = total_payments, fill = recipient_name)) +
+geom_col() +
+
+  labs(x = NULL, y = "Total Payments",
+       title = "Major Tech Companies Make Big Bucks",
+       subtitle = "Online Advertising & Digital Media",
+       caption = "SOURCE: Fec.gov") +
+  
+  scale_y_sqrt(labels = scales::dollar,
+               breaks = c(25000, 150000, 500000, 1000000, 5000000)) +
+  
+  scale_color_brewer(palette = "Paired") +
+  scale_fill_brewer(palette = "Paired") +
+  
+  scale_fill_discrete(name = "Company") +
+  scale_color_discrete(name = "Company") +
+  
+  
+  theme_tufte() +
+  
+  theme(plot.title = element_text(size = rel(1.5), face ="bold"),
+        plot.subtitle = element_text(face = "italic"),
+        legend.title = element_text(size = rel(1.2), face = "bold"),
+        axis.title.y = element_text(size = rel(1.2)),
+        plot.caption = element_text(face = "italic"),
+        panel.grid.major.y = element_line(color = "gray"),
+        axis.line.x = element_line(), axis.line.y = element_line())
+  
 ```
 
 
-```{r travel}
+```{r facebook}
 
+favs$recipient_name[favs$recipient_name == "FACEBOOK.COM"] <- "FACEBOOK"
+
+facebook <- favs %>% 
+  filter(recipient_name == "FACEBOOK") %>% 
+  summarize(total = sum(disbursement_amount))
+  
+  
+
+ggplot(favs_summary, aes(x = recipient_name, y = total_payments, fill = recipient_name)) +
+geom_col() +
+
+  labs(x = NULL, y = "Total Payments",
+       title = "Major Tech Companies Make Big Bucks",
+       subtitle = "Online Advertising & Digital Media",
+       caption = "SOURCE: Fec.gov") +
+  
+  scale_y_sqrt(labels = scales::dollar,
+               breaks = c(25000, 150000, 500000, 1000000, 5000000)) +
+  
+  scale_color_brewer(palette = "Paired") +
+  scale_fill_brewer(palette = "Paired") +
+  
+  scale_fill_discrete(name = "Company") +
+  scale_color_discrete(name = "Company") +
+  
+  
+  theme_tufte() +
+  
+  theme(plot.title = element_text(size = rel(1.5), face ="bold"),
+        plot.subtitle = element_text(face = "italic"),
+        legend.title = element_text(size = rel(1.2), face = "bold"),
+        axis.title.y = element_text(size = rel(1.2)),
+        plot.caption = element_text(face = "italic"),
+        panel.grid.major.y = element_line(color = "gray"),
+        axis.line.x = element_line(), axis.line.y = element_line())
+  
 
 ```
